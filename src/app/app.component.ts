@@ -1,6 +1,7 @@
 import { Character } from './model/character.model';
 import { CharacterService } from './character.service';
 import { Component } from '@angular/core';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -9,13 +10,17 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   characters: Character[] = [];
-
+  characterSubscription: Subscription = new Subscription;
   constructor(private characterService: CharacterService) { }
 
   ngOnInit() {
-    this.characterService.getCharacters().subscribe((response:any) => {
+   this.characterSubscription = this.characterService.getCharacters().subscribe((response:any) => {
       console.log(response)
       this.characters = response['results'];
     });
   }
+
+  ngOnDestroy() {
+    this.characterSubscription.unsubscribe()
+}
 }
