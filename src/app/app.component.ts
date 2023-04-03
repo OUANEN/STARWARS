@@ -1,3 +1,5 @@
+import { Character } from './model/character.model';
+import { CharacterService } from './character.service';
 import { Component } from '@angular/core';
 
 @Component({
@@ -6,5 +8,14 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'star-wars-app';
+  characters: Character[] = [];
+
+  constructor(private characterService: CharacterService) { }
+
+  ngOnInit() {
+    this.characterService.getCharacters().subscribe((response:any) => {
+      console.log(response)
+      this.characters = response['results'];
+    });
+  }
 }

@@ -1,31 +1,54 @@
 import { TestBed } from '@angular/core/testing';
-import { AppComponent } from './app.component';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { of } from 'rxjs';
+import { CharacterService } from './character.service';
 
-describe('AppComponent', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [
-        AppComponent
-      ],
-    }).compileComponents();
+
+interface Character {
+  name: string;
+}
+
+interface ApiResponse {
+  results: Character[];
+}
+
+describe('CharacterService', () => {
+  let service: CharacterService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [CharacterService]
+    });
+
+    service = TestBed.inject(CharacterService);
+    httpMock = TestBed.inject(HttpTestingController);
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+  afterEach(() => {
+    httpMock.verify();
   });
 
-  it(`should have as title 'star-wars-app'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('star-wars-app');
+  it('should be created', () => {
+    expect(service).toBeTruthy();
   });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('star-wars-app app is running!');
+  it('should retrieve the list of characters from the API via GET', () => {
+    const dummyData: ApiResponse = {
+      results: [
+        { name: 'Luke Skywalker' },
+        { name: 'Leia Organa' }
+      ]
+    };
+
+    service.getCharacters().subscribe((data: Character[]) => {
+      expect(dummyData.results[0].name).toEqual('Luke Skywalker');
+      expect(dummyData.results[1].name).toEqual('Leia Organa');
+    });
+
+    const req = httpMock.expectOne('https://swapi.dev/api/people');
+    expect(req.request.method).toBe('GET');
+    req.flush(dummyData);
   });
 });
